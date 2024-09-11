@@ -1,7 +1,7 @@
 import pygame as pg
 
 # Screen resolution
-scale = 1
+scale = 0.75
 width = 1080 * scale
 height = 864 * scale
 res = (width, height)
@@ -70,36 +70,30 @@ class Piece(pg.sprite.Sprite):
                 self.Unselect()
     def Unselect(self):
         self.active = False # If the mouse isn't being pressed deselect the pawn
+        posX,posY = PosToGrid(self.rect.centerx,self.rect.centery)
+        OriginX,OriginY = PosToGrid(self.orginx,self.orginy)
         self.orginx = None
         self.orginy = None
         circles.empty()
+        if (posX != OriginX and posY != OriginY):
+            SwitchTurn()
 
 def CheckMove(piece):
+    
     if piece.active == False: return False
     for square in grid:
         if square.rect.collidepoint(pg.mouse.get_pos()) and pg.mouse.get_pressed()[0]: # Check if mouse collides with a square in grid
             global turn
             match piece.type:
-                case "pawn":
-                    if PawnLogic(piece, square) == False:
-                        return False
-                case "rook":
-                    if RooksLogic(piece, square) == False:
-                        return False
-                case "knight":
-                    if KnightsLogic(piece, square) == False:
-                        return False
-                case "bishop":
-                    if BishopsLogic(piece, square) == False:
-                        return False
-                case "queen":
-                    if QueensLogic(piece, square) == False:
-                        return False
-                case "king":
-                    if KingsLogic(piece, square) == False:
-                        return False
+                case "pawn": status = PawnLogic(piece, square)
+                case "rook": status = RooksLogic(piece, square)
+                case "knight": status = KnightsLogic(piece, square)
+                case "bishop": status = BishopsLogic(piece, square)
+                case "queen": status = QueensLogic(piece, square)
+                case "king": status = KingsLogic(piece, square)
+
+            if (status == False): return False
             piece.rect.center = square.rect.center # Move piece to hovered square
-            SwitchTurn()
 
 def SwitchTurn():
     global turn
@@ -233,7 +227,11 @@ def Grid(): # Make grid
 def Draw():
     piecesGroup.draw(screen) # Draw the pieces on the screen
 
-
+def PosToGrid(a, b):
+    x = round(((a - 150) / gridSize))
+    y = 8 - round(((b - (gridSize / 2))) / gridSize)
+    # print(f"{x,y}")
+    return [x,y]
 
 def UpdatePiece(piece):
     pieceType = piece.type
